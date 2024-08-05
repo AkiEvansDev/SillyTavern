@@ -21,8 +21,9 @@ const TALKINGCHECK_UPDATE_INTERVAL = 500;
 const DEFAULT_FALLBACK_EXPRESSION = 'joy';
 const FUNCTION_NAME = 'set_emotion';
 const DEFAULT_LLM_PROMPT = 'Pause your roleplay. Classify the emotion of the last message. Output just one word, e.g. "joy" or "anger". Choose only one of the following labels: {{labels}}';
+const DEFAULT_LLM_PROMPT_SEX = 'Pause your roleplay. Is there any sexual activity in the current scene?. Output just one word. Choose only one of the following labels: "yes", "no"';
+const SEX_EXPRESSIONS_PREFIX = 'sex_';
 const DEFAULT_EXPRESSIONS = [
-    'talkinghead',
     'admiration',
     'amusement',
     'anger',
@@ -1156,8 +1157,15 @@ async function getExpressionLabel(text) {
 
                     functionResult = args?.arguments;
                 });
-                const emotionResponse = await generateQuietPrompt(prompt, false, false);
-                return parseLlmResponse(functionResult || emotionResponse, expressionsList);
+                const emotionResponse = await generateQuietPrompt(prompt, false, true);
+                const sex = await generateQuietPrompt(DEFAULT_LLM_PROMPT_SEX, false, true);
+
+                let result = parseLlmResponse(functionResult || emotionResponse, expressionsList);
+
+                if (sex == 'yes')
+                    return SEX_EXPRESSIONS_PREFIX + result;
+
+                return result;
             }
             // Extras
             default: {
@@ -1245,10 +1253,20 @@ async function drawSpritesList(character, labels, sprites) {
 
     for (const item of labels.sort()) {
         const sprite = sprites.find(x => x.label == item);
+        let sexSprite = sprites.find(x => x.label == SEX_EXPRESSIONS_PREFIX + item);
         const isCustom = extension_settings.expressions.custom.includes(item);
 
         if (sprite) {
             validExpressions.push(sprite);
+
+            if (sexSprite)
+                validExpressions.push(sexSprite);
+            else {
+                sexSprite = sprite;
+                sexSprite.label = SEX_EXPRESSIONS_PREFIX + sprite.label;
+                validExpressions.push(sexSprite);
+            }
+
             const listItem = await getListItem(item, sprite.path, 'success', isCustom);
             $('#image_list').append(listItem);
         }

@@ -179,14 +179,14 @@ export function autoSelectInstructPreset(modelId) {
 
     // Select matching instruct preset
     let foundMatch = false;
-    for (const instruct_preset of instruct_presets) {
-        // If instruct preset matches the context template
-        if (power_user.instruct.bind_to_context && instruct_preset.name === power_user.context.preset) {
-            foundMatch = true;
-            selectInstructPreset(instruct_preset.name);
-            break;
-        }
-    }
+    //for (const instruct_preset of instruct_presets) {
+    //    // If instruct preset matches the context template
+    //    if (power_user.instruct.bind_to_context && instruct_preset.name === power_user.context.preset) {
+    //        foundMatch = true;
+    //        selectInstructPreset(instruct_preset.name);
+    //        break;
+    //    }
+    //}
     // If no match was found, auto-select instruct preset
     if (!foundMatch) {
         for (const preset of instruct_presets) {

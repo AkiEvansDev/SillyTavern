@@ -252,6 +252,116 @@ async function translateProviderGoogle(text, lang) {
     throw new Error(response.statusText);
 }
 
+function isSpaceChar(c) {
+    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '=' || c == ';')
+        return true;
+
+    return false;
+}
+
+function isQuotesChar(c) {
+    if (c == '“' || c == '”' || c == '«' || c == '»' || c == '"')
+        return true;
+
+    return false;
+}
+
+function isEven(n) {
+    return n % 2 === 0
+}
+
+async function translateProviderGoogleFix(text, lang) {
+    if (text != '') {
+        text = text.replaceAll('“', '"');
+        text = text.replaceAll('”', '"');
+        text = text.replaceAll('«', '"');
+        text = text.replaceAll('»', '"');
+    }
+
+    //if (lang == languageCodes.Russian) {
+    //    text = text.replaceAll('"', '“');
+    //}
+
+    let index = 0;
+    let quotes = [];
+
+    [...text].forEach(c => {
+        if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
+            if (isQuotesChar(c) == true) {
+                quotes.push([index, false]);
+            } else if (c == '\'')
+                quotes.push([index, true]);
+        }
+        index++;
+    });
+
+    //let parts = [];
+
+    //let j = 0;
+    //let was = false;
+    //for (let i = 0; i < quotes.length; ++i) {
+    //    if (quotes[i][1] == false) {
+    //        parts.push(text.substring(j, quotes[i][0] + (was ? 1 : 0)).trim());
+    //        j = quotes[i][0] + (was ? 1 : 0);
+    //        was = !was;
+    //    }
+    //}
+
+    //if (j < text.length)
+    //    parts.push(text.substring(j + (was ? 1 : 0)).trim());
+
+    //let result = '';
+    //for (const part of parts) {
+    //    if (part[0] == '"')
+    //        result += "(";
+
+    //    result += part;
+
+    //    if (part[0] == '"')
+    //        result += ")";
+
+    //    result += ' ';
+    //}
+
+    let result = await translateProviderGoogle(text, lang);
+
+    if (result != '') {
+        result = result.replaceAll('“', '"');
+        result = result.replaceAll('”', '"');
+        result = result.replaceAll('«', '"');
+        result = result.replaceAll('»', '"');
+        result = result.replaceAll('-', '–');
+        result = result.replaceAll('—', '–');
+        result = result.replaceAll('".', '."');
+    }
+
+    index = 0;
+    for (let i = 0; i < result.length; ++i) {
+        let c = result.charAt(i);
+        if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
+            if (c == '"') {
+                if (index < quotes.length && quotes[index][1] == true) {
+                    result = result.substring(0, i) + '\'' + result.substring(i + 1);
+                }
+
+                index++;
+            }
+        }
+    }
+
+    if (isEven(result.split('"').length - 1) == false) {
+        index = result.lastIndexOf('"')
+        result = result.substring(0, index) + result.substring(index + 1);
+    }
+
+    if (isEven(result.split('*').length - 1) == false) {
+        index = result.lastIndexOf('*')
+        result = result.substring(0, index) + result.substring(index + 1);
+    }
+
+    return result;
+}
+
 /**
  * Translates text using an instance of the Lingva Translate
  * @param {string} text Text to translate
@@ -411,6 +521,8 @@ async function translate(text, lang) {
                 return await translateProviderLibre(text, lang);
             case 'google':
                 return await chunkedTranslate(text, lang, translateProviderGoogle, 5000);
+            case 'google_fix':
+                return await chunkedTranslate(text, lang, translateProviderGoogleFix, 5000);
             case 'lingva':
                 return await chunkedTranslate(text, lang, translateProviderLingva, 5000);
             case 'deepl':

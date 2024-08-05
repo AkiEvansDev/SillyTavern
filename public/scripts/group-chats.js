@@ -223,7 +223,7 @@ export async function getGroupChat(groupId, reload = false) {
         chat.splice(0, chat.length, ...data);
         await printMessages();
     } else {
-        sendSystemMessage(system_message_types.GROUP, '', { isSmallSys: true });
+        //sendSystemMessage(system_message_types.GROUP, '', { isSmallSys: true });
         await eventSource.emit(event_types.MESSAGE_RECEIVED, (chat.length - 1));
         await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, (chat.length - 1));
         if (group && Array.isArray(group.members)) {
