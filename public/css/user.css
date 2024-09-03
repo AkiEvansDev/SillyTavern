@@ -1,0 +1,7 @@
+/* Put custom styles here. */
+.avatar img {
+    object-position: center top !important;
+}
+#nonQRFormItems, #send_textarea {
+    outline: none !important;
+}
