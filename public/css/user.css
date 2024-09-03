@@ -2,6 +2,34 @@
 .avatar img {
     object-position: center top !important;
 }
-#nonQRFormItems, #send_textarea {
+
+#send_form {
+    margin-top: -1px !important;
+    border-radius: 0px !important;
+}
+
+#send_form:has(#send_textarea:focus-visible) {
+    border-color: transparent !important;
     outline: none !important;
+}
+
+#sheld {
+    height: calc(100dvh - var(--topBarBlockSize)) !important;
+    max-height: calc(100dvh - var(--topBarBlockSize)) !important;
+}
+
+.drawer-content {
+    background-color: transparent !important;
+    border-radius: 0 0 10px 10px !important;
+}
+
+#left-nav-panel, #right-nav-panel {
+    width: calc((100dvw - var(--sheldWidth)) / 2) !important;
+    max-height: 100dvh !important;
+    height: 100dvh !important;
+    border-radius: 0px !important;
+}
+
+.lastInContext {
+    border-top: 0 !important;
 }
