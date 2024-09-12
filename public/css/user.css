@@ -18,9 +18,12 @@
     max-height: calc(100dvh - var(--topBarBlockSize)) !important;
 }
 
-.drawer-content {
+#character_popup, .drawer-content {
     background-color: transparent !important;
+    backdrop-filter: blur(calc(var(--SmartThemeBlurStrength)* 2)) !important;
+    -webkit-backdrop-filter: blur(calc(var(--SmartThemeBlurStrength)* 2)) !important;
     border-radius: 0 0 10px 10px !important;
+    box-shadow: 0px 4px 20px 0px var(--black50a) !important;
 }
 
 #left-nav-panel, #right-nav-panel {
