@@ -36,3 +36,8 @@
 .lastInContext {
     border-top: 0 !important;
 }
+
+#chat {
+    margin-top: -1px;
+    margin-bottom: -1px;
+}

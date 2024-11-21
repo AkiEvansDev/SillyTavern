@@ -22,6 +22,8 @@ export const autoModeOptions = {
     RESPONSES: 'responses',
     INPUT: 'inputs',
     BOTH: 'both',
+     fix_user_gender: 'male',
+     fix_chat_gender: 'female',
 };
 
 const incomingTypes = [autoModeOptions.RESPONSES, autoModeOptions.BOTH];
@@ -163,6 +165,8 @@ function loadSettings() {
     $(`#translation_provider option[value="${extension_settings.translate.provider}"]`).attr('selected', true);
     $(`#translation_target_language option[value="${extension_settings.translate.target_language}"]`).attr('selected', true);
     $(`#translation_auto_mode option[value="${extension_settings.translate.auto_mode}"]`).attr('selected', true);
+    $(`#fix_user_gender`).val(extension_settings.translate.fix_user_gender);
+    $(`#fix_chat_gender`).val(extension_settings.translate.fix_chat_gender);
     showKeysButton();
 }
 
@@ -323,7 +327,26 @@ async function translateProviderGoogleFix(text, lang) {
     //    result += ' ';
     //}
 
+    let fixGender = false;
+    if (extension_settings.translate.fix_user_gender && extension_settings.translate.fix_user_gender.length > 0 &&
+        extension_settings.translate.fix_chat_gender && extension_settings.translate.fix_chat_gender.length > 0) {
+        fixGender = true;
+
+        const context = getContext();
+
+        text =
+            extension_settings.translate.fix_user_gender + " " + context.name1 + ". " +
+            extension_settings.translate.fix_chat_gender + " " + context.name2 + ". " +
+            text;
+    }
+
     let result = await translateProviderGoogle(text, lang);
+
+    if (fixGender == true) {
+        result = result.substring(result.indexOf('.') + 1);
+        result = result.substring(result.indexOf('.') + 1);
+        result = result.trimStart();
+    }
 
     if (result != '') {
         result = result.replaceAll('“', '"');
@@ -705,6 +728,14 @@ jQuery(async () => {
     });
     $('#translation_target_language').on('change', (event) => {
         extension_settings.translate.target_language = event.target.value;
+        saveSettingsDebounced();
+    });
+    $('#fix_user_gender').on('change', (event) => {
+        extension_settings.translate.fix_user_gender = event.target.value;
+        saveSettingsDebounced();
+    });
+    $('#fix_chat_gender').on('change', (event) => {
+        extension_settings.translate.fix_chat_gender = event.target.value;
         saveSettingsDebounced();
     });
     $(document).on('click', '.mes_translate', onMessageTranslateClick);
