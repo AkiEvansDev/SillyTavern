@@ -342,7 +342,7 @@ async function translateProviderGoogleFix(text, lang) {
 
     let result = text;
 
-    const response = await fetch('/api/translate/googleFix', {
+    const response = await fetch('/api/translate/google', {
         method: 'POST',
         headers: getRequestHeaders(),
         body: JSON.stringify({ text: text, lang: lang }),
