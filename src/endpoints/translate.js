@@ -25,6 +25,37 @@ function getGoogleTranslateClient() {
     return googleTranslateApi;
 }
 
+let page = null;
+
+async function initGoogleBrowser() {
+    if (page)
+        return page;
+
+    const requirePuppeteer = createRequire(import.meta.url);
+    const puppeteer = requirePuppeteer("puppeteer");
+    const browser = await puppeteer.launch({ headless: true });
+    const [loadPage] = await browser.pages();
+
+    browser.on('disconnected', () => {
+        page = null;
+    });
+
+    page = loadPage;
+
+    await page.goto(`https://translate.google.com/?sl=en&tl=ru&text=Hello&op=translate`);
+
+    const btnSel = ".VfPpkd-vQzf8d";
+    await page.waitForSelector(btnSel);
+    await page.evaluate(() => {
+        [...document.querySelectorAll('button')].find(element => element.textContent === 'Accept all').click();
+    });
+
+    const outSel = ".ryNqvb";
+    await page.waitForSelector(outSel);
+
+    return page;
+}
+
 /**
  * Tries to decode an ArrayBuffer to a string using iconv-lite for UTF-8.
  * @param {ArrayBuffer} buffer ArrayBuffer
@@ -108,6 +139,7 @@ router.post('/google', jsonParser, async (request, response) => {
 
         const { generateRequestUrl, normaliseResponse } = getGoogleTranslateClient();
         const requestUrl = generateRequestUrl(text, { to: lang });
+        
         const result = await fetch(requestUrl);
 
         if (!result.ok) {
@@ -118,6 +150,36 @@ router.post('/google', jsonParser, async (request, response) => {
         const buffer = await result.arrayBuffer();
         const translateResponse = normaliseResponse(JSON.parse(decodeBuffer(buffer)));
         const translatedText = translateResponse.text;
+
+        response.setHeader('Content-Type', 'text/plain; charset=utf-8');
+        console.log('Translated text: ' + translatedText);
+        return response.send(translatedText);
+    } catch (error) {
+        console.log('Translation error', error);
+        return response.sendStatus(500);
+    }
+});
+
+router.post('/googleFix', jsonParser, async (request, response) => {
+    try {
+        const text = request.body.text;
+        const lang = request.body.lang;
+
+        if (!text || !lang) {
+            return response.sendStatus(400);
+        }
+
+        console.log('Input text: ' + text);
+
+        const page = await initGoogleBrowser();
+        const query = encodeURI(text);
+
+        await page.goto(`https://translate.google.com/?sl=en&tl=${lang}&text=${query}&op=translate`);
+
+        const outSel = ".ryNqvb";
+        await page.waitForSelector(outSel);
+        const phrases = await page.$$eval(outSel, els => els.map(e => e.textContent));
+        const translatedText = phrases.join(" ");
 
         response.setHeader('Content-Type', 'text/plain; charset=utf-8');
         console.log('Translated text: ' + translatedText);

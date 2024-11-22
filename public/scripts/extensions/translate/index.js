@@ -335,12 +335,24 @@ async function translateProviderGoogleFix(text, lang) {
         const context = getContext();
 
         text =
-            extension_settings.translate.fix_user_gender + " " + context.name1 + ". " +
-            extension_settings.translate.fix_chat_gender + " " + context.name2 + ". " +
+            context.name1 + " - " + extension_settings.translate.fix_user_gender + ". " +
+            context.name2 + " - " + extension_settings.translate.fix_chat_gender + ". " +
             text;
     }
 
-    let result = await translateProviderGoogle(text, lang);
+    let result = text;
+
+    const response = await fetch('/api/translate/googleFix', {
+        method: 'POST',
+        headers: getRequestHeaders(),
+        body: JSON.stringify({ text: text, lang: lang }),
+    });
+
+    if (response.ok) {
+        result = await response.text();
+    } else {
+        throw new Error(response.statusText);
+    }
 
     if (fixGender == true) {
         result = result.substring(result.indexOf('.') + 1);
