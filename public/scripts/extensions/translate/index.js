@@ -367,6 +367,8 @@ async function translateProviderGoogleFix(text, lang) {
         result = result.replaceAll('»', '"');
         result = result.replaceAll('-', '–');
         result = result.replaceAll('—', '–');
+        result = result.replaceAll('".', '."');
+        result = result.replaceAll('*.', '.*');
     }
 
     index = 0;
