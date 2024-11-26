@@ -286,18 +286,18 @@ async function translateProviderGoogleFix(text, lang) {
     //    text = text.replaceAll('"', '“');
     //}
 
-    //let index = 0;
-    //let quotes = [];
+    let index = 0;
+    let quotes = [];
 
-    //[...text].forEach(c => {
-    //    if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
-    //        if (isQuotesChar(c) == true) {
-    //            quotes.push([index, false]);
-    //        } else if (c == '\'')
-    //            quotes.push([index, true]);
-    //    }
-    //    index++;
-    //});
+    [...text].forEach(c => {
+        if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
+            if (isQuotesChar(c) == true)
+                quotes.push([index, false]);
+            else if (c == '\'')
+                quotes.push([index, true]);
+        }
+        index++;
+    });
 
     //let parts = [];
 
@@ -369,20 +369,29 @@ async function translateProviderGoogleFix(text, lang) {
         result = result.replaceAll('—', '–');
     }
 
-    //index = 0;
-    //for (let i = 0; i < result.length; ++i) {
-    //    let c = result.charAt(i);
-    //    if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
-    //        if (c == '"') {
-    //            if (index < quotes.length && quotes[index][1] == true) {
-    //                result = result.substring(0, i) + '\'' + result.substring(i + 1);
-    //            }
+    index = 0;
 
-    //            index++;
-    //        }
-    //    }
-    //}
+    [...result].forEach(c => {
+        if (c == '"')
+            index++;
+    });
 
+    if (quotes.length == index) {
+        index = 0;
+        for (let i = 0; i < result.length; ++i) {
+            let c = result.charAt(i);
+            if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
+                if (c == '"') {
+                    if (index < quotes.length && quotes[index][1] == true) {
+                        result = result.substring(0, i) + '\'' + result.substring(i + 1);
+                    }
+
+                    index++;
+                }
+            }
+        }
+    }
+    
     //if (isEven(result.split('"').length - 1) == false) {
     //    index = result.lastIndexOf('"')
     //    result = result.substring(0, index) + result.substring(index + 1);
