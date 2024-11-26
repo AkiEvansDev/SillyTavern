@@ -257,7 +257,7 @@ async function translateProviderGoogle(text, lang) {
 }
 
 function isSpaceChar(c) {
-    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '=' || c == ';')
+    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '=' || c == ';' || c == '\n' || c == '\t')
         return true;
 
     return false;
@@ -372,13 +372,17 @@ async function translateProviderGoogleFix(text, lang) {
     }
 
     index = 0;
+    let count = 0;
 
     [...result].forEach(c => {
-        if (c == '"')
-            index++;
+        if (index == 0 || index == result.length - 1 || isSpaceChar(result.charAt(index - 1)) == true || isSpaceChar(result.charAt(index + 1)) == true) {
+            if (isQuotesChar(c) == true || c == '\'')
+                count++;
+        }
+        index++;
     });
 
-    if (quotes.length == index) {
+    if (quotes.length == count) {
         index = 0;
         for (let i = 0; i < result.length; ++i) {
             let c = result.charAt(i);
