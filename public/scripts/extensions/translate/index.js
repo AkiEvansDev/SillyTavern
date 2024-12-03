@@ -257,7 +257,7 @@ async function translateProviderGoogle(text, lang) {
 }
 
 function isSpaceChar(c) {
-    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '=' || c == ';' || c == '\n' || c == '\t')
+    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '*' || c == '=' || c == ';' || c == '\n' || c == '\t')
         return true;
 
     return false;
