@@ -22,8 +22,6 @@ export const autoModeOptions = {
     RESPONSES: 'responses',
     INPUT: 'inputs',
     BOTH: 'both',
-     fix_user_gender: 'male',
-     fix_chat_gender: 'female',
 };
 
 const incomingTypes = [autoModeOptions.RESPONSES, autoModeOptions.BOTH];
@@ -165,8 +163,6 @@ function loadSettings() {
     $(`#translation_provider option[value="${extension_settings.translate.provider}"]`).attr('selected', true);
     $(`#translation_target_language option[value="${extension_settings.translate.target_language}"]`).attr('selected', true);
     $(`#translation_auto_mode option[value="${extension_settings.translate.auto_mode}"]`).attr('selected', true);
-    $(`#fix_user_gender`).val(extension_settings.translate.fix_user_gender);
-    $(`#fix_chat_gender`).val(extension_settings.translate.fix_chat_gender);
     showKeysButton();
 }
 
@@ -254,161 +250,6 @@ async function translateProviderGoogle(text, lang) {
     }
 
     throw new Error(response.statusText);
-}
-
-function isSpaceChar(c) {
-    if (c == ' ' || c == '.' || c == ',' || c == '!' || c == '?' || c == ':' || c == '*' || c == '=' || c == ';' || c == '\n' || c == '\t')
-        return true;
-
-    return false;
-}
-
-function isQuotesChar(c) {
-    if (c == '“' || c == '”' || c == '«' || c == '»' || c == '"')
-        return true;
-
-    return false;
-}
-
-function isEven(n) {
-    return n % 2 === 0
-}
-
-async function translateProviderGoogleFix(text, lang) {
-    if (text != '') {
-        text = text.replaceAll('“', '"');
-        text = text.replaceAll('”', '"');
-        text = text.replaceAll('«', '"');
-        text = text.replaceAll('»', '"');
-    }
-
-    //if (lang == languageCodes.Russian) {
-    //    text = text.replaceAll('"', '“');
-    //}
-
-    let index = 0;
-    let quotes = [];
-
-    [...text].forEach(c => {
-        if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
-            if (isQuotesChar(c) == true)
-                quotes.push([index, false]);
-            else if (c == '\'')
-                quotes.push([index, true]);
-        }
-        index++;
-    });
-
-    //let parts = [];
-
-    //let j = 0;
-    //let was = false;
-    //for (let i = 0; i < quotes.length; ++i) {
-    //    if (quotes[i][1] == false) {
-    //        parts.push(text.substring(j, quotes[i][0] + (was ? 1 : 0)).trim());
-    //        j = quotes[i][0] + (was ? 1 : 0);
-    //        was = !was;
-    //    }
-    //}
-
-    //if (j < text.length)
-    //    parts.push(text.substring(j + (was ? 1 : 0)).trim());
-
-    //let result = '';
-    //for (const part of parts) {
-    //    if (part[0] == '"')
-    //        result += "(";
-
-    //    result += part;
-
-    //    if (part[0] == '"')
-    //        result += ")";
-
-    //    result += ' ';
-    //}
-
-    let fixGender = false;
-    if (extension_settings.translate.fix_user_gender && extension_settings.translate.fix_user_gender.length > 0 &&
-        extension_settings.translate.fix_chat_gender && extension_settings.translate.fix_chat_gender.length > 0) {
-        fixGender = true;
-
-        const context = getContext();
-
-        text =
-            context.name1 + " - " + extension_settings.translate.fix_user_gender + ". " +
-            context.name2 + " - " + extension_settings.translate.fix_chat_gender + ". " +
-            text;
-    }
-
-    let result = text;
-
-    const response = await fetch('/api/translate/google', {
-        method: 'POST',
-        headers: getRequestHeaders(),
-        body: JSON.stringify({ text: text, lang: lang }),
-    });
-
-    if (response.ok) {
-        result = await response.text();
-    } else {
-        throw new Error(response.statusText);
-    }
-
-    if (fixGender == true) {
-        result = result.substring(result.indexOf('.') + 1);
-        result = result.substring(result.indexOf('.') + 1);
-        result = result.trimStart();
-    }
-
-    if (result != '') {
-        result = result.replaceAll('“', '"');
-        result = result.replaceAll('”', '"');
-        result = result.replaceAll('«', '"');
-        result = result.replaceAll('»', '"');
-        result = result.replaceAll('-', '–');
-        result = result.replaceAll('—', '–');
-        result = result.replaceAll('".', '."');
-        result = result.replaceAll('*.', '.*');
-    }
-
-    index = 0;
-    let count = 0;
-
-    [...result].forEach(c => {
-        if (index == 0 || index == result.length - 1 || isSpaceChar(result.charAt(index - 1)) == true || isSpaceChar(result.charAt(index + 1)) == true) {
-            if (isQuotesChar(c) == true || c == '\'')
-                count++;
-        }
-        index++;
-    });
-
-    if (quotes.length == count) {
-        index = 0;
-        for (let i = 0; i < result.length; ++i) {
-            let c = result.charAt(i);
-            if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
-                if (c == '"') {
-                    if (index < quotes.length && quotes[index][1] == true) {
-                        result = result.substring(0, i) + '\'' + result.substring(i + 1);
-                    }
-
-                    index++;
-                }
-            }
-        }
-    }
-    
-    //if (isEven(result.split('"').length - 1) == false) {
-    //    index = result.lastIndexOf('"')
-    //    result = result.substring(0, index) + result.substring(index + 1);
-    //}
-
-    //if (isEven(result.split('*').length - 1) == false) {
-    //    index = result.lastIndexOf('*')
-    //    result = result.substring(0, index) + result.substring(index + 1);
-    //}
-
-    return result;
 }
 
 /**
@@ -565,32 +406,47 @@ async function translate(text, lang) {
             lang = extension_settings.translate.target_language;
         }
 
-        switch (extension_settings.translate.provider) {
-            case 'libre':
-                return await translateProviderLibre(text, lang);
-            case 'google':
-                return await chunkedTranslate(text, lang, translateProviderGoogle, 5000);
-            case 'google_fix':
-                return await chunkedTranslate(text, lang, translateProviderGoogleFix, 5000);
-            case 'lingva':
-                return await chunkedTranslate(text, lang, translateProviderLingva, 5000);
-            case 'deepl':
-                return await translateProviderDeepl(text, lang);
-            case 'deeplx':
-                return await chunkedTranslate(text, lang, translateProviderDeepLX, 1500);
-            case 'oneringtranslator':
-                return await translateProviderOneRing(text, lang);
-            case 'bing':
-                return await chunkedTranslate(text, lang, translateProviderBing, 1000);
-            case 'yandex':
-                return await translateProviderYandex(text, lang);
-            default:
-                console.error('Unknown translation provider', extension_settings.translate.provider);
-                return text;
+        // split text by embedded images links
+        const chunks = text.split(/!\[.*?]\([^)]*\)/);
+        const links = [...text.matchAll(/!\[.*?]\([^)]*\)/g)];
+
+        let result = '';
+        for (let i = 0; i < chunks.length; i++) {
+            result += await translateInner(chunks[i], lang);
+            if (i < links.length) result += links[i][0];
         }
+
+        return result;
     } catch (error) {
         console.log(error);
         toastr.error(String(error), 'Failed to translate message');
+    }
+}
+
+async function translateInner(text, lang) {
+    if (text == '') {
+        return '';
+    }
+    switch (extension_settings.translate.provider) {
+        case 'libre':
+            return await translateProviderLibre(text, lang);
+        case 'google':
+            return await chunkedTranslate(text, lang, translateProviderGoogle, 5000);
+        case 'lingva':
+            return await chunkedTranslate(text, lang, translateProviderLingva, 5000);
+        case 'deepl':
+            return await translateProviderDeepl(text, lang);
+        case 'deeplx':
+            return await chunkedTranslate(text, lang, translateProviderDeepLX, 1500);
+        case 'oneringtranslator':
+            return await translateProviderOneRing(text, lang);
+        case 'bing':
+            return await chunkedTranslate(text, lang, translateProviderBing, 1000);
+        case 'yandex':
+            return await translateProviderYandex(text, lang);
+        default:
+            console.error('Unknown translation provider', extension_settings.translate.provider);
+            return text;
     }
 }
 
@@ -756,14 +612,6 @@ jQuery(async () => {
         extension_settings.translate.target_language = event.target.value;
         saveSettingsDebounced();
     });
-    $('#fix_user_gender').on('change', (event) => {
-        extension_settings.translate.fix_user_gender = event.target.value;
-        saveSettingsDebounced();
-    });
-    $('#fix_chat_gender').on('change', (event) => {
-        extension_settings.translate.fix_chat_gender = event.target.value;
-        saveSettingsDebounced();
-    });
     $(document).on('click', '.mes_translate', onMessageTranslateClick);
     $('#translate_key_button').on('click', async () => {
         const optionText = $('#translation_provider option:selected').text();
@@ -801,7 +649,7 @@ jQuery(async () => {
         const secretKey = extension_settings.translate.provider + '_url';
         const savedUrl = secret_state[secretKey] ? await findSecret(secretKey) : '';
 
-        const url = await callGenericPopup(popupText, POPUP_TYPE.INPUT, savedUrl,{
+        const url = await callGenericPopup(popupText, POPUP_TYPE.INPUT, savedUrl, {
             customButtons: [{
                 text: 'Remove URL',
                 appendAtEnd: true,
