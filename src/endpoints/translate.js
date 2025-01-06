@@ -129,6 +129,51 @@ router.post('/google', jsonParser, async (request, response) => {
     }
 });
 
+router.post('/googleFix', jsonParser, async (request, response) => {
+    const url = readSecret(request.user.directories, "google_fix_url");
+
+    if (!url) {
+        console.log('Google Fix URL is not configured.');
+        return response.sendStatus(400);
+    }
+
+    const text = request.body.text;
+    const lang = request.body.lang;
+
+    if (!text || !lang) {
+        return response.sendStatus(400);
+    }
+
+    console.log('Input text: ' + text);
+
+    try {
+        const result = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify({
+                text: text,
+                lang: lang,
+            }),
+            headers: { 'Content-Type': 'application/json' },
+        });
+
+        if (!result.ok) {
+            const error = await result.text();
+            console.log('Google Fix error: ', result.statusText, error);
+            return response.sendStatus(result.status);
+        }
+        console.log(result);
+
+        /** @type {any} */
+        const translatedText = await result.text();
+        console.log('Translated text: ' + translatedText);
+
+        return response.send(translatedText);
+    } catch (error) {
+        console.log('Translation error: ' + error.message);
+        return response.sendStatus(500);
+    }
+});
+
 router.post('/yandex', jsonParser, async (request, response) => {
     try {
         const chunks = request.body.chunks;
