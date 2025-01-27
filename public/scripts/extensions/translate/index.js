@@ -287,20 +287,22 @@ async function translateProviderGoogleFix(text, lang, url) {
         text = text.replaceAll('«', '"');
         text = text.replaceAll('»', '"');
         text = text.replaceAll(',"', '."');
+        text = text.replaceAll('"*', '" *');
+        text = text.replaceAll('*"', '* "');
     }
 
-    let index = 0;
-    let quotes = [];
+    //let index = 0;
+    //let quotes = [];
 
-    [...text].forEach(c => {
-        if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
-            if (isQuotesChar(c) == true)
-                quotes.push([index, false]);
-            else if (c == '\'')
-                quotes.push([index, true]);
-        }
-        index++;
-    });
+    //[...text].forEach(c => {
+    //    if (index == 0 || index == text.length - 1 || isSpaceChar(text.charAt(index - 1)) == true || isSpaceChar(text.charAt(index + 1)) == true) {
+    //        if (isQuotesChar(c) == true)
+    //            quotes.push([index, false]);
+    //        else if (c == '\'')
+    //            quotes.push([index, true]);
+    //    }
+    //    index++;
+    //});
 
     let result = text;
 
@@ -325,34 +327,36 @@ async function translateProviderGoogleFix(text, lang, url) {
         result = result.replaceAll('—', '–');
         result = result.replaceAll('".', '."');
         result = result.replaceAll('*.', '.*');
+        result = result.replaceAll('"*', '" *');
+        result = result.replaceAll('*"', '* "');
     }
 
-    index = 0;
-    let count = 0;
+    //index = 0;
+    //let count = 0;
 
-    [...result].forEach(c => {
-        if (index == 0 || index == result.length - 1 || isSpaceChar(result.charAt(index - 1)) == true || isSpaceChar(result.charAt(index + 1)) == true) {
-            if (isQuotesChar(c) == true || c == '\'')
-                count++;
-        }
-        index++;
-    });
+    //[...result].forEach(c => {
+    //    if (index == 0 || index == result.length - 1 || isSpaceChar(result.charAt(index - 1)) == true || isSpaceChar(result.charAt(index + 1)) == true) {
+    //        if (isQuotesChar(c) == true || c == '\'')
+    //            count++;
+    //    }
+    //    index++;
+    //});
 
-    if (quotes.length == count) {
-        index = 0;
-        for (let i = 0; i < result.length; ++i) {
-            let c = result.charAt(i);
-            if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
-                if (c == '"') {
-                    if (index < quotes.length && quotes[index][1] == true) {
-                        result = result.substring(0, i) + '\'' + result.substring(i + 1);
-                    }
+    //if (quotes.length == count) {
+    //    index = 0;
+    //    for (let i = 0; i < result.length; ++i) {
+    //        let c = result.charAt(i);
+    //        if (i == 0 || i == result.length - 1 || isSpaceChar(result.charAt(i - 1)) == true || isSpaceChar(result.charAt(i + 1)) == true) {
+    //            if (c == '"') {
+    //                if (index < quotes.length && quotes[index][1] == true) {
+    //                    result = result.substring(0, i) + '\'' + result.substring(i + 1);
+    //                }
 
-                    index++;
-                }
-            }
-        }
-    }
+    //                index++;
+    //            }
+    //        }
+    //    }
+    //}
 
     return result;
 }
