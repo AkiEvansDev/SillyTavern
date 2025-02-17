@@ -2177,7 +2177,6 @@ function migrateSettings() {
                 typeList: [ARGUMENT_TYPE.STRING],
                 isRequired: true,
                 enumProvider: commonEnumProviders.characters('character'),
-                forceEnum: true,
             }),
         ],
         helpString: 'Returns the last set sprite / expression for the named character.',
